@@ -1,0 +1,56 @@
+name: Multi-Job CI
+
+env:  # 全局环境变量
+  NODE_ENV: production
+  API_URL: https://api.example.com
+  MAX_RETRIES: 3
+
+on:
+  # push:
+  #   branches: [ main ]
+  # schedule:
+  #   # 每间隔1分钟运行（UTC时间）
+  #   - cron: '* * * * *'
+
+  #   # 每月1号 02:00 运行
+  #   - cron: '0 2 1 * *'
+  workflow_dispatch:
+
+jobs:
+  build111:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    env:  # step
+      DATABASE_URL: postgresql://localhost:5432/mydb
+      LOG_LEVEL: debug
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main  # actions/checkout：GitHub 官方 Action 的名称，@main：使用main分支
+
+      - name: Run build step
+        run: echo "Building the project..."
+        env:  # 在 Step 级别设置环境变量
+          STEP_SPECIFIC_VAR: step-value
+          ANOTHER_VAR: another-value
+
+      - name: Run tests
+        run: echo "Running tests..."
+
+  build222:
+    name: Linting and Code Quality
+    runs-on: ubuntu-latest
+    # 默认情况下，jobs 会并行执行
+    # 如果需要按顺序执行，可以使用 needs 关键字
+    # needs: build  # 这会让 build222 在 build 完成后才运行
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Run linting
+        run: echo "Running code linting..."
+
+      - name: Code analysis
+        run: echo "Running static code analysis..."

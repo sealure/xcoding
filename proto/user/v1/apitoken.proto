@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "xcoding/gen/go/user/v1;userv1";
+
+// API令牌权限范围枚举
+// 定义API令牌的权限范围，用于限制令牌可以访问的资源
+enum Scope {
+  // 未指定范围，表示没有特定权限
+  SCOPE_UNSPECIFIED = 0;
+  
+  // 读取权限 - 允许获取资源信息
+  SCOPE_READ = 1;
+  
+  // 写入权限 - 允许创建和修改资源
+  SCOPE_WRITE = 2;
+  
+  // 删除权限 - 允许删除资源
+  SCOPE_DELETE = 3;
+  
+  // 管理员权限 - 拥有所有权限
+  SCOPE_ADMIN = 4;
+  
+  // 用户管理权限 - 允许管理用户账户
+  SCOPE_USER_MANAGEMENT = 5;
+  
+  // 项目管理权限 - 允许管理项目
+  SCOPE_PROJECT_MANAGEMENT = 6;
+  
+  // 代码仓库权限 - 允许访问代码仓库
+  SCOPE_REPOSITORY_ACCESS = 7;
+  
+  // 流水线权限 - 允许管理CI/CD流水线
+  SCOPE_PIPELINE_MANAGEMENT = 8;
+  
+  // 制品权限 - 允许管理构建制品
+  SCOPE_ARTIFACT_MANAGEMENT = 9;
+}
+
+// API令牌有效期枚举
+// 定义API令牌的有效期选项
+enum TokenExpiration {
+  // 未指定有效期，使用默认值
+  TOKEN_EXPIRATION_UNSPECIFIED = 0;
+  
+  // 永不过期
+  TOKEN_EXPIRATION_NEVER = 1;
+  
+  // 1天后过期
+  TOKEN_EXPIRATION_ONE_DAY = 2;
+  
+  // 7天后过期
+  TOKEN_EXPIRATION_ONE_WEEK = 3;
+  
+  // 30天后过期
+  TOKEN_EXPIRATION_ONE_MONTH = 4;
+  
+  // 90天后过期
+  TOKEN_EXPIRATION_THREE_MONTHS = 5;
+  
+  // 365天后过期
+  TOKEN_EXPIRATION_ONE_YEAR = 6;
+}
+
+// 创建API令牌请求
+message CreateAPITokenRequest {
+  string name = 1;
+  string description = 2;
+  // API令牌的有效期选项，使用枚举值指定
+  TokenExpiration expires_in = 3;
+  // API令牌的权限范围，可以指定多个范围
+  repeated Scope scopes = 4;
+}
+
+// 创建API令牌响应
+message CreateAPITokenResponse {
+  uint64 id = 1;
+  string name = 2;
+  string token = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  string description = 5;
+  // API令牌的权限范围列表
+  repeated Scope scopes = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// 列出API令牌请求
+message ListAPITokensRequest {}
+
+// 列出API令牌响应
+message ListAPITokensResponse {
+  repeated CreateAPITokenResponse tokens = 1;
+}
+
+// 删除API令牌请求
+message DeleteAPITokenRequest {
+  uint64 token_id = 1;
+}
+
+// 删除API令牌响应
+message DeleteAPITokenResponse {
+  bool success = 1;
+}

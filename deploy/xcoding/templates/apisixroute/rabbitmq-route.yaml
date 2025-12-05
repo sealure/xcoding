@@ -1,0 +1,37 @@
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: rabbitmq-manager-route
+  namespace: xcoding
+spec:
+  http:
+  - name: rabbitmq-manager
+    match:
+      hosts:
+      - rabbitmq.xcoding.local
+      paths:
+      - "/*"
+    backends:
+    - serviceName: rabbitmq
+      servicePort: 15672
+    plugins:
+    - name: prometheus
+      enable: false
+    - name: cors
+      enable: true
+      config:
+        origins:
+        - "*"
+        methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        headers:
+        - Accept
+        - Accept-Language
+        - Content-Language
+        - Content-Type
+        - Authorization
+        - X-Requested-With

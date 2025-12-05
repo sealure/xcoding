@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package ci.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "xcoding/gen/go/ci/v1;civ1";
+
+// 调度（Cron）定义
+message PipelineSchedule {
+  uint64 id = 1;                    // schedule_id
+  uint64 pipeline_id = 2;           // 归属流水线
+  string cron = 3;                  // Cron表达式，例如 "0 2 1 * *"
+  string timezone = 4;              // 时区，默认 "UTC"
+  bool enabled = 5;                 // 是否启用
+  google.protobuf.Timestamp last_triggered_at = 6; // 上次触发时间（可选）
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreatePipelineScheduleRequest {
+  uint64 pipeline_id = 1; // 路径变量
+  string cron = 2;
+  string timezone = 3;
+  bool enabled = 4;
+}
+message CreatePipelineScheduleResponse { PipelineSchedule schedule = 1; }
+
+message ListPipelineSchedulesRequest {
+  uint64 pipeline_id = 1; // 路径变量
+  int32 page = 2;
+  int32 page_size = 3;
+}
+message ListPipelineSchedulesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated PipelineSchedule data = 1;
+  Pagination pagination = 2;
+}
+
+message UpdatePipelineScheduleRequest {
+  uint64 pipeline_id = 1; // 路径变量
+  uint64 schedule_id = 2; // 路径变量
+  string cron = 3;
+  string timezone = 4;
+  bool enabled = 5;
+}
+message UpdatePipelineScheduleResponse { PipelineSchedule schedule = 1; }
+
+message DeletePipelineScheduleRequest {
+  uint64 pipeline_id = 1; // 路径变量
+  uint64 schedule_id = 2; // 路径变量
+}
+message DeletePipelineScheduleResponse { bool success = 1; }

@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package artifact.v1;
+
+import "google/protobuf/timestamp.proto";
+import "artifact/v1/repository.proto";
+
+option go_package = "xcoding/gen/go/artifact/v1;artifactv1";
+
+// 标签消息
+message Tag {
+  uint64 id = 1;
+  string name = 2;
+  string digest = 3;
+  string manifest = 4;
+  uint64 repository_id = 5;
+  Repository repository = 6;
+  uint64 size_bytes = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// 创建标签请求
+message CreateTagRequest {
+  string name = 1;
+  string digest = 2;
+  string manifest = 4;
+  uint64 repository_id = 5;
+  uint64 size_bytes = 6;
+}
+
+// 创建标签响应
+message CreateTagResponse {
+  Tag tag = 1;
+}
+
+// 获取标签请求
+message GetTagRequest {
+  uint64 id = 1;
+}
+
+// 获取标签响应
+message GetTagResponse {
+  Tag tag = 1;
+}
+
+// 更新标签请求
+message UpdateTagRequest {
+  uint64 id = 1;
+  string name = 2;
+  string digest = 3;
+  string manifest = 4;
+  uint64 repository_id = 5;
+  uint64 size_bytes = 6;
+}
+
+// 更新标签响应
+message UpdateTagResponse {
+  Tag tag = 1;
+}
+
+// 删除标签请求
+message DeleteTagRequest {
+  uint64 id = 1;
+}
+
+// 删除标签响应
+message DeleteTagResponse {
+  bool success = 1;
+}
+
+// 列出标签请求
+message ListTagsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  uint64 repository_id = 3;  // 可选，用于过滤特定仓库下的标签
+}
+
+// 列出标签响应
+message ListTagsResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Tag data = 1;
+  Pagination pagination = 2;
+}

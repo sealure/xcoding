@@ -1,0 +1,81 @@
+# 编译文件和可执行文件
+*.exe
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+backend/xcoding-backend
+backend/xcoding-backend.exe
+
+# 测试和覆盖率文件
+*.test
+*.out
+coverage.out
+coverage.html
+
+# 依赖缓存
+vendor/
+go.sum.backup
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+.tmp
+
+# IDE和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS生成的文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (如果有前端部分)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker临时文件
+.dockerignore.bak
+
+# Kubernetes secrets
+k8s/secrets/
+/helm-values-*
+/proto/gen/
+/main
+/gen/
+/cmd
+/apps/o3oo/gateway/gateway
+deploy/xcoding/charts/apisix-dashboard-0.8.3.tgz
+/deploy/xcoding/charts/apisix/
+/deploy/xcoding/charts/apisix-ingress-controller/
+**/*.pyc
+**/tmp/
+**/temp/
+**/bin/
+
+
+**/dist/
+**/logs
+**/log
+**/main
+bin/

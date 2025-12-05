@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package code_repository.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "code_repository/v1/branch.proto";
+import "code_repository/v1/commit.proto";
+
+option go_package = "xcoding/gen/go/code_repository/v1;coderepositoryv1";
+
+// CodeRepositoryService provides code repository management operations
+service CodeRepositoryService {
+  // Create a new repository
+  rpc CreateRepository(CreateRepositoryRequest) returns (CreateRepositoryResponse) {
+    option (google.api.http) = {
+      post: "/code_repository_service/api/v1/repositories"
+      body: "*"
+    };
+  }
+
+  // Get a repository by ID
+  rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories/{repository_id}"
+    };
+  }
+
+  // List repositories for a project
+  rpc ListRepositories(ListRepositoriesRequest) returns (ListRepositoriesResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories"
+    };
+  }
+
+  // Update a repository
+  rpc UpdateRepository(UpdateRepositoryRequest) returns (UpdateRepositoryResponse) {
+    option (google.api.http) = {
+      put: "/code_repository_service/api/v1/repositories/{repository_id}"
+      body: "*"
+    };
+  }
+
+  // Delete a repository
+  rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteRepositoryResponse) {
+    option (google.api.http) = {
+      delete: "/code_repository_service/api/v1/repositories/{repository_id}"
+    };
+  }
+
+  // Test repository connection
+  rpc TestRepositoryConnection(TestRepositoryConnectionRequest) returns (TestRepositoryConnectionResponse) {
+    option (google.api.http) = {
+      post: "/code_repository_service/api/v1/repositories/{repository_id}/test"
+      body: "*"
+    };
+  }
+
+  // Get repository branches (legacy string list)
+  rpc GetRepositoryBranches(GetRepositoryBranchesRequest) returns (GetRepositoryBranchesResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories/{repository_id}/branches"
+    };
+  }
+
+  // ==== Branch CRUD (entities) ====
+  rpc CreateBranch(CreateBranchRequest) returns (CreateBranchResponse) {
+    option (google.api.http) = {
+      post: "/code_repository_service/api/v1/repositories/{repository_id}/branches/entities"
+      body: "*"
+    };
+  }
+
+  rpc GetBranch(GetBranchRequest) returns (GetBranchResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories/{repository_id}/branches/entities/{branch_id}"
+    };
+  }
+
+  rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories/{repository_id}/branches/entities"
+    };
+  }
+
+  rpc UpdateBranch(UpdateBranchRequest) returns (UpdateBranchResponse) {
+    option (google.api.http) = {
+      put: "/code_repository_service/api/v1/repositories/{repository_id}/branches/entities/{branch_id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteBranch(DeleteBranchRequest) returns (DeleteBranchResponse) {
+    option (google.api.http) = {
+      delete: "/code_repository_service/api/v1/repositories/{repository_id}/branches/entities/{branch_id}"
+    };
+  }
+
+  // ==== Commit CRUD ====
+  rpc CreateCommit(CreateCommitRequest) returns (CreateCommitResponse) {
+    option (google.api.http) = {
+      post: "/code_repository_service/api/v1/repositories/{repository_id}/branches/{branch_id}/commits"
+      body: "*"
+    };
+  }
+
+  rpc GetCommit(GetCommitRequest) returns (GetCommitResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories/{repository_id}/commits/{commit_id}"
+    };
+  }
+
+  rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
+    option (google.api.http) = {
+      get: "/code_repository_service/api/v1/repositories/{repository_id}/branches/{branch_id}/commits"
+    };
+  }
+
+  rpc UpdateCommit(UpdateCommitRequest) returns (UpdateCommitResponse) {
+    option (google.api.http) = {
+      put: "/code_repository_service/api/v1/repositories/{repository_id}/commits/{commit_id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteCommit(DeleteCommitRequest) returns (DeleteCommitResponse) {
+    option (google.api.http) = {
+      delete: "/code_repository_service/api/v1/repositories/{repository_id}/commits/{commit_id}"
+    };
+  }
+}
+
+// Repository auth type enum
+enum RepositoryAuthType {
+  REPOSITORY_AUTH_TYPE_UNSPECIFIED = 0;
+  REPOSITORY_AUTH_TYPE_NONE = 1;
+  REPOSITORY_AUTH_TYPE_PASSWORD = 2;
+  REPOSITORY_AUTH_TYPE_SSH = 3;
+}
+
+// Repository sync status enum
+enum RepositorySyncStatus {
+  REPOSITORY_SYNC_STATUS_UNSPECIFIED = 0;
+  REPOSITORY_SYNC_STATUS_PENDING = 1;
+  REPOSITORY_SYNC_STATUS_SYNCING = 2;
+  REPOSITORY_SYNC_STATUS_SUCCESS = 3;
+  REPOSITORY_SYNC_STATUS_FAILED = 4;
+}
+
+// Repository message
+message Repository {
+  uint64 id = 1;
+  uint64 project_id = 2;
+  string name = 3;
+  string description = 4;
+  string git_url = 5;
+  string branch = 6;
+  RepositoryAuthType auth_type = 7;
+  string git_username = 8;
+  bool is_active = 9;
+  google.protobuf.Timestamp last_sync_at = 10;
+  RepositorySyncStatus sync_status = 11;
+  string sync_message = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+// CreateRepositoryRequest
+message CreateRepositoryRequest {
+  uint64 project_id = 1;
+  string name = 2;
+  string description = 3;
+  string git_url = 4;
+  string branch = 5;
+  RepositoryAuthType auth_type = 6;
+  string git_username = 7;
+  string git_password = 8;
+  string git_ssh_key = 9;
+}
+message CreateRepositoryResponse { Repository repository = 1; }
+
+// GetRepositoryRequest
+message GetRepositoryRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+}
+message GetRepositoryResponse { Repository repository = 1; }
+
+// ListRepositoriesRequest
+message ListRepositoriesRequest {
+  uint64 project_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+message ListRepositoriesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Repository data = 1;
+  Pagination pagination = 2;
+}
+
+// UpdateRepositoryRequest
+message UpdateRepositoryRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  string name = 3;
+  string description = 4;
+  string git_url = 5;
+  string branch = 6;
+  RepositoryAuthType auth_type = 7;
+  string git_username = 8;
+  string git_password = 9;
+  string git_ssh_key = 10;
+  bool is_active = 11;
+}
+message UpdateRepositoryResponse { Repository repository = 1; }
+
+// DeleteRepositoryRequest
+message DeleteRepositoryRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+}
+message DeleteRepositoryResponse { bool success = 1; }
+
+// TestRepositoryConnectionRequest
+message TestRepositoryConnectionRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+}
+message TestRepositoryConnectionResponse { bool success = 1; string message = 2; }

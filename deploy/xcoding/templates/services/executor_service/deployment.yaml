@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ci-executor
+  labels:
+    app.kubernetes.io/name: xcoding
+    app.kubernetes.io/instance: xcoding
+    app.kubernetes.io/component: ci-executor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: xcoding
+      app.kubernetes.io/instance: xcoding
+      app.kubernetes.io/component: ci-executor
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: xcoding
+        app.kubernetes.io/instance: xcoding
+        app.kubernetes.io/component: ci-executor
+    spec:
+      enableServiceLinks: false
+      serviceAccountName: ci-executor-sa
+      containers:
+      - name: ci-executor
+        image: localhost:31500/ci-executor-service:20251205082842
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 10056
+          protocol: TCP
+        env:
+        - name: EXECUTOR_DB_HOST
+          value: postgresql
+        - name: EXECUTOR_DB_PORT
+          value: '5432'
+        - name: EXECUTOR_DB_USER
+          value: postgres
+        - name: EXECUTOR_DB_PASSWORD
+          value: postgres
+        - name: EXECUTOR_DB_NAME
+          value: xcoding_ci
+        - name: EXECUTOR_DB_SSLMODE
+          value: disable
+        - name: EXECUTOR_GRPC_ADDRESS
+          value: 0.0.0.0
+        - name: EXECUTOR_GRPC_PORT
+          value: '50056'
+        - name: EXECUTOR_HTTP_ADDRESS
+          value: 0.0.0.0
+        - name: EXECUTOR_HTTP_PORT
+          value: '10056'
+        - name: RABBITMQ_URL
+          value: amqp://admin:admin123@rabbitmq:5672/
+        - name: RABBITMQ_QUEUE
+          value: ci_builds
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        livenessProbe:
+          grpc:
+            port: 50056
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          grpc:
+            port: 50056
+          initialDelaySeconds: 10
+          periodSeconds: 10

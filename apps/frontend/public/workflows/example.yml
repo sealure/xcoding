@@ -1,0 +1,86 @@
+name: Multi-Job CI
+
+env:  # 全局环境变量
+  NODE_ENV: production
+  API_URL: https://api.example.com
+  MAX_RETRIES: 3
+
+on:
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      debug:
+        description: '启用调试模式'
+        required: false
+        type: boolean
+      tags:
+        description: '自定义标签'
+        required: false
+        type: string
+  push:
+    branches: [ main ]
+  schedule:
+    # 每间隔1分钟运行（UTC时间）
+    - cron: '* * * * *'
+
+    # 每月1号 02:00 运行
+    - cron: '0 2 1 * *'
+
+jobs:
+  build111:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    env:  # step
+      DATABASE_URL: postgresql://localhost:5432/mydb
+      LOG_LEVEL: debug
+
+
+    steps:
+      - name: Simulate checkout
+        run: echo "Simulating checkout on ref dev"
+
+        env:  # 在 Step 级别设置环境变量
+          STEP_SPECIFIC_VAR: step-value
+          ANOTHER_VAR: another-value
+
+      - name: Run build step
+        run: echo "Building the project..."
+        env:  # 在 Step 级别设置环境变量
+          STEP_SPECIFIC_VAR: step-value
+          ANOTHER_VAR: another-value
+
+      - name: Run tests
+        run: echo "Running tests..."
+        env:  # 在 Step 级别设置环境变量
+          STEP_SPECIFIC_VAR: step-value
+          ANOTHER_VAR: another-value
+
+  build222:
+    name: Linting and Code Quality
+    runs-on: ubuntu-latest
+    # 默认情况下，jobs 会并行执行
+    # 如果需要按顺序执行，可以使用 needs 关键字
+    needs: build111  # 这会让 build222 在 build111 完成后才运行
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Echo action validation
+        uses: Kaizhe/alpine-echo@v1.0.0
+        with:
+          message: "Hello Marketplace Echo"
+
+      - name: Run linting
+        run: echo "Running code linting..."
+
+      - name: Code analysis
+        run: echo "Running static code analysis..."

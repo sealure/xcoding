@@ -1,0 +1,15 @@
+dependencies:
+- name: apisix
+  repository: https://charts.apiseven.com
+  version: 2.11.6
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.7.27
+- name: docker-registry
+  repository: https://charts.helm.sh/stable
+  version: 1.9.6
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.0.14
+digest: sha256:a58bb1c602e4dbb07f7275cf15514bf7c35144737e46307b28f3302883e09f75
+generated: "2025-10-31T07:52:49.671004549+08:00"

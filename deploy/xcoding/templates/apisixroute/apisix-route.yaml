@@ -1,0 +1,287 @@
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: user-route
+  namespace: xcoding
+  labels:
+    app: user-service
+spec:
+  http:
+  # 公开端点 - 不需要认证
+  - name: user-public
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/user_service/api/v1/users/register"
+        - "/user_service/api/v1/users/login"
+        - "/user_service/api/v1/auth"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD" 
+        - "OPTIONS"
+    backends:
+    - serviceName: user
+      servicePort: 10051
+
+  # 受保护端点 - 需要认证
+  - name: user-protected
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/user_service/api/v1/users"
+        - "/user_service/api/v1/users/*"
+        - "/user_service/api/v1/tokens"
+        - "/user_service/api/v1/tokens/*"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+    - serviceName: user
+      servicePort: 10051
+    plugins:
+    - name: forward-auth
+      enable: true
+      config:
+        uri: "http://user.xcoding.svc:10051/user_service/api/v1/auth"
+        request_method: "GET"
+        request_headers:
+          - "Authorization"
+        upstream_headers:
+          - "X-User-ID"
+          - "X-Username"
+          - "X-User-Role"
+          - "X-Scopes"
+
+  # project 受保护端点 - 需要认证
+  - name: project-protected
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/project_service/api/v1/projects"
+        - "/project_service/api/v1/projects/*"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+    - serviceName: project
+      servicePort: 10052
+    plugins:
+    - name: forward-auth
+      enable: true
+      config:
+        uri: "http://user.xcoding.svc:10051/user_service/api/v1/auth"
+        request_method: "GET"
+        request_headers:
+          - "Authorization"
+        upstream_headers:
+          - "X-User-ID"
+          - "X-Username"
+          - "X-User-Role"
+          - "X-Scopes"
+
+  # code_repository 受保护端点 - 需要认证
+  - name: code-repository-protected
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/code_repository_service/api/v1/repositories"
+        - "/code_repository_service/api/v1/repositories/*"
+        - "/code_repository_service/api/v1/projects/*/repositories"
+        - "/code_repository_service/api/v1/projects/*/repositories/*"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+    - serviceName: code-repository
+      servicePort: 10053
+    plugins:
+    - name: forward-auth
+      enable: true
+      config:
+        uri: "http://user.xcoding.svc:10051/user_service/api/v1/auth"
+        request_method: "GET"
+        request_headers:
+          - "Authorization"
+        upstream_headers:
+          - "X-User-ID"
+          - "X-Username"
+          - "X-User-Role"
+          - "X-Scopes"
+
+  # artifact 受保护端点 - 需要认证
+  - name: artifact-protected
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/artifact_service/api/v1/*"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+    - serviceName: artifact
+      servicePort: 10054
+    plugins:
+    - name: forward-auth
+      enable: true
+      config:
+        uri: "http://user.xcoding.svc:10051/user_service/api/v1/auth"
+        request_method: "GET"
+        request_headers:
+          - "Authorization"
+          # - "X-Original-URI"
+          # - "X-Original-Method"
+          # - "X-Forwarded-Proto"
+          # - "X-Forwarded-Host"
+        upstream_headers:
+          - "X-User-ID"
+          - "X-Username"
+          - "X-User-Role"
+          - "X-Scopes"
+
+  # ci_service 受保护端点 - 需要认证
+  - name: ci_service-protected
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/ci_service/api/v1/*"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+      - serviceName: ci-pipeline
+        servicePort: 10055
+    plugins:
+      - name: forward-auth
+        enable: true
+        config:
+          uri: "http://user.xcoding.svc:10051/user_service/api/v1/auth"
+          request_method: "GET"
+          request_headers:
+            - "Authorization"
+          upstream_headers:
+            - "X-User-ID"
+            - "X-Username"
+            - "X-User-Role"
+            - "X-Scopes"
+
+  - name: ci_executor-ws
+    priority: 10
+    websocket: true
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/ci_service/api/v1/executor/ws/builds/*"
+      methods:
+        - "GET"
+    backends:
+      - serviceName: ci-executor
+        servicePort: 10056
+
+  - name: ci_executor-protected
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "api.xcoding.local"
+        - "localhost"
+      paths:
+        - "/ci_service/api/v1/executor/*"
+      methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "PATCH"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+      - serviceName: ci-executor
+        servicePort: 10056
+    plugins:
+      - name: forward-auth
+        enable: true
+        config:
+          uri: "http://user.xcoding.svc:10051/user_service/api/v1/auth"
+          request_method: "GET"
+          request_headers:
+            - "Authorization"
+          upstream_headers:
+            - "X-User-ID"
+            - "X-Username"
+            - "X-User-Role"
+            - "X-Scopes"
+
+
+  - name: frontend
+    match:
+      hosts:
+        - "devops.o3oo.cn"
+        - "xcoding.local"
+        - "localhost"
+      paths:
+        - "/"
+        - "/*"
+      methods:
+        - "GET"
+        - "HEAD"
+        - "OPTIONS"
+    backends:
+    - serviceName: frontend
+      servicePort: 80

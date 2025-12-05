@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package artifact.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "artifact/v1/registry.proto";
+import "artifact/v1/namespace.proto";
+import "artifact/v1/repository.proto";
+import "artifact/v1/tag.proto";
+
+option go_package = "xcoding/gen/go/artifact/v1;artifactv1";
+
+// ArtifactService 提供Docker镜像管理操作
+service ArtifactService {
+  // Registry相关操作
+  
+  // 创建注册表
+  rpc CreateRegistry(CreateRegistryRequest) returns (CreateRegistryResponse) {
+    option (google.api.http) = {
+      post: "/artifact_service/api/v1/registries"
+      body: "*"
+    };
+  }
+  
+  // 获取注册表
+  rpc GetRegistry(GetRegistryRequest) returns (GetRegistryResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/registries/{id}"
+    };
+  }
+  
+  // 更新注册表
+  rpc UpdateRegistry(UpdateRegistryRequest) returns (UpdateRegistryResponse) {
+    option (google.api.http) = {
+      put: "/artifact_service/api/v1/registries/{id}"
+      body: "*"
+    };
+  }
+  
+  // 删除注册表
+  rpc DeleteRegistry(DeleteRegistryRequest) returns (DeleteRegistryResponse) {
+    option (google.api.http) = {
+      delete: "/artifact_service/api/v1/registries/{id}"
+    };
+  }
+  
+  // 列出注册表
+  rpc ListRegistries(ListRegistriesRequest) returns (ListRegistriesResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/registries"
+    };
+  }
+  
+  // Namespace相关操作
+  
+  // 创建命名空间
+  rpc CreateNamespace(CreateNamespaceRequest) returns (CreateNamespaceResponse) {
+    option (google.api.http) = {
+      post: "/artifact_service/api/v1/namespaces"
+      body: "*"
+    };
+  }
+  
+  // 获取命名空间
+  rpc GetNamespace(GetNamespaceRequest) returns (GetNamespaceResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/namespaces/{id}"
+    };
+  }
+  
+  // 更新命名空间
+  rpc UpdateNamespace(UpdateNamespaceRequest) returns (UpdateNamespaceResponse) {
+    option (google.api.http) = {
+      put: "/artifact_service/api/v1/namespaces/{id}"
+      body: "*"
+    };
+  }
+  
+  // 删除命名空间
+  rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
+    option (google.api.http) = {
+      delete: "/artifact_service/api/v1/namespaces/{id}"
+    };
+  }
+  
+  // 列出命名空间
+  rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/namespaces"
+    };
+  }
+  
+  // Repository相关操作
+  
+  // 创建仓库
+  rpc CreateRepository(CreateRepositoryRequest) returns (CreateRepositoryResponse) {
+    option (google.api.http) = {
+      post: "/artifact_service/api/v1/repositories"
+      body: "*"
+    };
+  }
+  
+  // 获取仓库
+  rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/repositories/{id}"
+    };
+  }
+  
+  // 更新仓库
+  rpc UpdateRepository(UpdateRepositoryRequest) returns (UpdateRepositoryResponse) {
+    option (google.api.http) = {
+      put: "/artifact_service/api/v1/repositories/{id}"
+      body: "*"
+    };
+  }
+  
+  // 删除仓库
+  rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteRepositoryResponse) {
+    option (google.api.http) = {
+      delete: "/artifact_service/api/v1/repositories/{id}"
+    };
+  }
+  
+  // 列出仓库
+  rpc ListRepositories(ListRepositoriesRequest) returns (ListRepositoriesResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/repositories"
+    };
+  }
+  
+  // Tag相关操作
+  
+  // 创建标签
+  rpc CreateTag(CreateTagRequest) returns (CreateTagResponse) {
+    option (google.api.http) = {
+      post: "/artifact_service/api/v1/tags"
+      body: "*"
+    };
+  }
+  
+  // 获取标签
+  rpc GetTag(GetTagRequest) returns (GetTagResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/tags/{id}"
+    };
+  }
+  
+  // 更新标签
+  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagResponse) {
+    option (google.api.http) = {
+      put: "/artifact_service/api/v1/tags/{id}"
+      body: "*"
+    };
+  }
+  
+  // 删除标签
+  rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse) {
+    option (google.api.http) = {
+      delete: "/artifact_service/api/v1/tags/{id}"
+    };
+  }
+  
+  // 列出标签
+  rpc ListTags(ListTagsRequest) returns (ListTagsResponse) {
+    option (google.api.http) = {
+      get: "/artifact_service/api/v1/tags"
+    };
+  }
+  
+}

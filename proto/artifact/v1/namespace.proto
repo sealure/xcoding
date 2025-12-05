@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package artifact.v1;
+
+import "google/protobuf/timestamp.proto";
+import "artifact/v1/registry.proto";
+
+option go_package = "xcoding/gen/go/artifact/v1;artifactv1";
+
+// 命名空间消息
+message Namespace {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  uint64 registry_id = 4;
+  Registry registry = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// 创建命名空间请求
+message CreateNamespaceRequest {
+  string name = 1;
+  string description = 2;
+  uint64 registry_id = 3;
+}
+
+// 创建命名空间响应
+message CreateNamespaceResponse {
+  Namespace namespace = 1;
+}
+
+// 获取命名空间请求
+message GetNamespaceRequest {
+  uint64 id = 1;
+}
+
+// 获取命名空间响应
+message GetNamespaceResponse {
+  Namespace namespace = 1;
+}
+
+// 更新命名空间请求
+message UpdateNamespaceRequest {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  uint64 registry_id = 4;
+}
+
+// 更新命名空间响应
+message UpdateNamespaceResponse {
+  Namespace namespace = 1;
+}
+
+// 删除命名空间请求
+message DeleteNamespaceRequest {
+  uint64 id = 1;
+}
+
+// 删除命名空间响应
+message DeleteNamespaceResponse {
+  bool success = 1;
+}
+
+// 列出命名空间请求
+message ListNamespacesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  uint64 registry_id = 3;  // 可选，用于过滤特定注册表下的命名空间
+}
+
+// 列出命名空间响应
+message ListNamespacesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Namespace data = 1;
+  Pagination pagination = 2;
+}

@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  labels:
+    app.kubernetes.io/name: xcoding
+    app.kubernetes.io/instance: xcoding
+    app.kubernetes.io/component: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: xcoding
+      app.kubernetes.io/instance: xcoding
+      app.kubernetes.io/component: user
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: xcoding
+        app.kubernetes.io/instance: xcoding
+        app.kubernetes.io/component: user
+    spec:
+      enableServiceLinks: false
+      containers:
+      - name: user
+        image: localhost:31500/user-service:j51xyll1
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 10051
+          protocol: TCP
+        env:
+        - name: DB_HOST
+          value: postgresql
+        - name: DB_PORT
+          value: '5432'
+        - name: DB_USER
+          value: postgres
+        - name: DB_PASSWORD
+          value: postgres
+        - name: DB_NAME
+          value: xcoding_user
+        - name: DB_SSLMODE
+          value: disable
+        - name: GRPC_ADDRESS
+          value: 0.0.0.0
+        - name: GRPC_PORT
+          value: '50051'
+        - name: HTTP_ADDRESS
+          value: 0.0.0.0
+        - name: HTTP_PORT
+          value: '10051'
+        livenessProbe:
+          grpc:
+            port: 50051
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          grpc:
+            port: 50051
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi

@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package code_repository.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "xcoding/gen/go/code_repository/v1;coderepositoryv1";
+
+// 分支实体
+message Branch {
+  uint64 id = 1;
+  uint64 repository_id = 2;
+  string name = 3;
+  bool is_default = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// GetRepositoryBranchesRequest
+message GetRepositoryBranchesRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// GetRepositoryBranchesResponse（兼容旧接口，返回字符串列表）
+message GetRepositoryBranchesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated string data = 1;
+  Pagination pagination = 2;
+}
+
+// CreateBranch
+message CreateBranchRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  string name = 3;
+  bool is_default = 4; // 可选，设置为默认分支
+}
+message CreateBranchResponse { Branch branch = 1; }
+
+// GetBranch
+message GetBranchRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 branch_id = 3;
+}
+message GetBranchResponse { Branch branch = 1; }
+
+// ListBranches
+message ListBranchesRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+message ListBranchesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Branch data = 1;
+  Pagination pagination = 2;
+}
+
+// UpdateBranch
+message UpdateBranchRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 branch_id = 3;
+  string name = 4;
+  bool is_default = 5; // 设置/取消默认分支
+}
+message UpdateBranchResponse { Branch branch = 1; }
+
+// DeleteBranch
+message DeleteBranchRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 branch_id = 3;
+}
+message DeleteBranchResponse { bool success = 1; }

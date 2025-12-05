@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package artifact.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "artifact/v1/namespace.proto";
+
+option go_package = "xcoding/gen/go/artifact/v1;artifactv1";
+
+// 仓库消息
+message Repository {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  uint64 namespace_id = 4;
+  Namespace namespace = 5;
+  string path = 6;  // 新增：用于泛型文件仓库的路径或逻辑路径
+  bool is_public = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// 创建仓库请求
+message CreateRepositoryRequest {
+  string name = 1;
+  string description = 2;
+  uint64 namespace_id = 3;
+  bool is_public = 4;
+  string path = 5; // 新增：允许在创建时指定仓库路径
+}
+
+// 创建仓库响应
+message CreateRepositoryResponse {
+  Repository repository = 1;
+}
+
+// 获取仓库请求
+message GetRepositoryRequest {
+  uint64 id = 1;
+}
+
+// 获取仓库响应
+message GetRepositoryResponse {
+  Repository repository = 1;
+}
+
+// 更新仓库请求
+message UpdateRepositoryRequest {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  uint64 namespace_id = 4;
+  bool is_public = 5;
+  string path = 6; // 新增：允许更新仓库路径
+}
+
+// 更新仓库响应
+message UpdateRepositoryResponse {
+  Repository repository = 1;
+}
+
+// 删除仓库请求
+message DeleteRepositoryRequest {
+  uint64 id = 1;
+}
+
+// 删除仓库响应
+message DeleteRepositoryResponse {
+  bool success = 1;
+}
+
+// 列出仓库请求
+message ListRepositoriesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  uint64 namespace_id = 3;  // 可选，用于过滤特定命名空间下的仓库
+}
+
+// 列出仓库响应
+message ListRepositoriesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Repository data = 1;
+  Pagination pagination = 2;
+}

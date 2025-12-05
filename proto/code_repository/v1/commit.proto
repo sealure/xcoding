@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package code_repository.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "xcoding/gen/go/code_repository/v1;coderepositoryv1";
+
+// 提交实体
+message Commit {
+  uint64 id = 1;
+  uint64 branch_id = 2;
+  string hash = 3;
+  string message = 4;
+  string author_name = 5;
+  string author_email = 6;
+  google.protobuf.Timestamp authored_at = 7;
+  string committer_name = 8;
+  string committer_email = 9;
+  google.protobuf.Timestamp committed_at = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// CreateCommit
+message CreateCommitRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 branch_id = 3;
+  string hash = 4;
+  string message = 5;
+  string author_name = 6;
+  string author_email = 7;
+  google.protobuf.Timestamp authored_at = 8;
+  string committer_name = 9;
+  string committer_email = 10;
+  google.protobuf.Timestamp committed_at = 11;
+}
+message CreateCommitResponse { Commit commit = 1; }
+
+// GetCommit
+message GetCommitRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 commit_id = 3;
+}
+message GetCommitResponse { Commit commit = 1; }
+
+// ListCommits
+message ListCommitsRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 branch_id = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+message ListCommitsResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Commit data = 1;
+  Pagination pagination = 2;
+}
+
+// UpdateCommit
+message UpdateCommitRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 commit_id = 3;
+  string message = 4;
+}
+message UpdateCommitResponse { Commit commit = 1; }
+
+// DeleteCommit
+message DeleteCommitRequest {
+  uint64 project_id = 1;
+  uint64 repository_id = 2;
+  uint64 commit_id = 3;
+}
+message DeleteCommitResponse { bool success = 1; }

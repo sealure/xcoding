@@ -1,0 +1,53 @@
+# Top-level dockerignore to reduce build context for all services
+
+# VCS and editor junk
+.git
+.gitignore
+*.swp
+*.tmp
+*.log
+node_modules
+
+# Python caches
+__pycache__
+*.pyc
+
+# CI and discard
+.workflows
+pytest_cache
+.vscode
+.idea
+discard/
+
+# Frontend build outputs
+apps/frontend/node_modules
+apps/frontend/dist
+
+# Local env files and secrets
+**/.env
+**/.env.*
+
+# Test and e2e artifacts
+**/e2e/
+**/tests/
+**/coverage/
+
+# Docker and deployment images cache
+deploy/images/
+
+# Exclude non-Go microservices scratch area
+discard/microservices/
+
+# Exclude proto sources if generated code exists (we copy repo root anyway)
+proto/
+
+# Go build caches (not needed in context)
+.trae/
+.pytest_cache/
+**/bin/
+**/out/
+
+# Misc archives
+*.zip
+*.tar
+*.tar.gz

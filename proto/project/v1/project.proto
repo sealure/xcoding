@@ -1,0 +1,285 @@
+syntax = "proto3";
+
+package project.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "user/v1/user.proto";
+
+option go_package = "xcoding/gen/go/project/v1;projectv1";
+
+// ProjectService provides project management operations
+service ProjectService {
+  // Create a new project
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {
+    option (google.api.http) = {
+      post: "/project_service/api/v1/projects"
+      body: "*"
+    };
+  }
+
+  // Get a project by ID
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {
+    option (google.api.http) = {
+      get: "/project_service/api/v1/projects/{project_id}"
+    };
+  }
+
+  // List projects
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {
+    option (google.api.http) = {
+      get: "/project_service/api/v1/projects"
+    };
+  }
+
+  // Update a project
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {
+    option (google.api.http) = {
+      put: "/project_service/api/v1/projects/{project_id}"
+      body: "*"
+    };
+  }
+
+  // Delete a project
+  rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {
+    option (google.api.http) = {
+      delete: "/project_service/api/v1/projects/{project_id}"
+    };
+  }
+
+  // Add a member to a project
+  rpc AddProjectMember(AddProjectMemberRequest) returns (AddProjectMemberResponse) {
+    option (google.api.http) = {
+      post: "/project_service/api/v1/projects/{project_id}/members"
+      body: "*"
+    };
+  }
+
+  // List project members
+  rpc ListProjectMembers(ListProjectMembersRequest) returns (ListProjectMembersResponse) {
+    option (google.api.http) = {
+      get: "/project_service/api/v1/projects/{project_id}/members"
+    };
+  }
+
+  // Update project member role
+  rpc UpdateProjectMember(UpdateProjectMemberRequest) returns (UpdateProjectMemberResponse) {
+    option (google.api.http) = {
+      put: "/project_service/api/v1/projects/{project_id}/members/{user_id}"
+      body: "*"
+    };
+  }
+
+  // Remove a member from a project
+  rpc RemoveProjectMember(RemoveProjectMemberRequest) returns (RemoveProjectMemberResponse) {
+    option (google.api.http) = {
+      delete: "/project_service/api/v1/projects/{project_id}/members/{user_id}"
+    };
+  }
+
+  // Create a project with a new user
+  rpc CreateProjectWithUser(CreateProjectWithUserRequest) returns (CreateProjectWithUserResponse) {
+    option (google.api.http) = {
+      post: "/project_service/api/v1/projects/create-with-user"
+      body: "*"
+    };
+  }
+
+  // Sync user permissions (internal service call)
+  rpc SyncUserPermissions(SyncUserPermissionsRequest) returns (SyncUserPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/project_service/api/v1/projects/{project_id}/sync-permissions"
+      body: "*"
+    };
+  }
+}
+
+// Project message
+message Project {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  string language = 4;
+  string framework = 5;
+  bool is_public = 6;
+  string status = 7;
+  uint64 owner_id = 8;
+  .user.v1.User owner = 9;
+  repeated .user.v1.User members = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// Project member role enum
+enum ProjectMemberRole {
+  PROJECT_MEMBER_ROLE_UNSPECIFIED = 0;
+  PROJECT_MEMBER_ROLE_OWNER = 1;
+  PROJECT_MEMBER_ROLE_ADMIN = 2;
+  PROJECT_MEMBER_ROLE_MEMBER = 3;
+  PROJECT_MEMBER_ROLE_GUEST = 4;
+}
+
+// ProjectMember message
+message ProjectMember {
+  uint64 user_id = 1;
+  uint64 project_id = 2;
+  ProjectMemberRole role = 3;
+  .user.v1.User user = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// CreateProjectRequest
+message CreateProjectRequest {
+  string name = 1;
+  string description = 2;
+  string language = 3;
+  string framework = 4;
+  bool is_public = 5;
+}
+
+// GetProjectRequest
+message GetProjectRequest {
+  uint64 project_id = 1;
+}
+
+// ListProjectsRequest
+message ListProjectsRequest {
+  bool all = 1; // Show all projects (including public ones) or only user's projects
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+// ListProjectsResponse
+message ListProjectsResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Project data = 1;
+  Pagination pagination = 2;
+}
+
+// UpdateProjectRequest
+message UpdateProjectRequest {
+  uint64 project_id = 1;
+  string name = 2;
+  string description = 3;
+  string language = 4;
+  string framework = 5;
+  bool is_public = 6;
+  string status = 7;
+}
+
+// DeleteProjectRequest
+message DeleteProjectRequest {
+  uint64 project_id = 1;
+}
+
+// AddProjectMemberRequest
+message AddProjectMemberRequest {
+  uint64 project_id = 1;
+  uint64 user_id = 2;
+  ProjectMemberRole role = 3;
+}
+
+// ListProjectMembersRequest
+message ListProjectMembersRequest {
+  uint64 project_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+// ListProjectMembersResponse
+message ListProjectMembersResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated ProjectMember data = 1;
+  Pagination pagination = 2;
+}
+
+// UpdateProjectMemberRequest
+message UpdateProjectMemberRequest {
+  uint64 project_id = 1;
+  uint64 user_id = 2;
+  ProjectMemberRole role = 3;
+}
+
+// RemoveProjectMemberRequest
+message RemoveProjectMemberRequest {
+  uint64 project_id = 1;
+  uint64 user_id = 2;
+}
+
+// AddProjectMemberResponse
+message AddProjectMemberResponse {
+  ProjectMember member = 1;
+}
+
+// UpdateProjectMemberResponse
+message UpdateProjectMemberResponse {
+  ProjectMember member = 1;
+}
+
+// RemoveProjectMemberResponse
+message RemoveProjectMemberResponse {
+  bool success = 1;
+}
+
+// CreateProjectResponse
+message CreateProjectResponse {
+  Project project = 1;
+}
+
+// GetProjectResponse
+message GetProjectResponse {
+  Project project = 1;
+}
+
+// UpdateProjectResponse
+message UpdateProjectResponse {
+  Project project = 1;
+}
+
+// DeleteProjectResponse
+message DeleteProjectResponse {
+  bool success = 1;
+}
+
+// ProjectInfo message
+message ProjectInfo {
+  string name = 1;
+  string description = 2;
+  string language = 3;
+  string framework = 4;
+  bool is_public = 5;
+}
+
+// CreateProjectWithUserRequest
+message CreateProjectWithUserRequest {
+  .user.v1.User user = 1;
+  ProjectInfo project = 2;
+  bool create_repository = 3;
+}
+
+// CreateProjectWithUserResponse
+message CreateProjectWithUserResponse {
+  .user.v1.User user = 1;
+  Project project = 2;
+}
+
+// SyncUserPermissionsRequest
+message SyncUserPermissionsRequest {
+  uint64 project_id = 1;
+}
+
+// SyncUserPermissionsResponse
+message SyncUserPermissionsResponse {
+  repeated ProjectMember members = 1;
+}

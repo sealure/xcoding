@@ -1,0 +1,465 @@
+name: Comprehensive GitHub Actions Workflow Demo
+
+# 1. 触发事件配置
+on:
+  # 推送事件
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+    paths:
+      - 'src/**'
+      - '**.js'
+      - '!docs/**'
+  
+  # 拉取请求事件
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+  
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      debug:
+        description: '启用调试模式'
+        required: false
+        type: boolean
+      tags:
+        description: '自定义标签'
+        required: false
+        type: string
+  
+  # 定时任务
+  schedule:
+    - cron: '0 2 * * 1-5'  # 每周一到五凌晨2点
+    - cron: '0 0 * * 0'    # 每周日凌晨
+  
+  # 仓库事件
+  release:
+    types: [ published ]
+  
+  # 工作流调用
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+      skip_tests:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      DEPLOY_KEY:
+        required: true
+
+# 2. 环境变量配置
+env:
+  NODE_VERSION: '18.x'
+  PYTHON_VERSION: '3.10'
+  DOCKER_REGISTRY: 'ghcr.io'
+
+# 3. 工作流权限
+permissions:
+  contents: read
+  packages: write
+  issues: write
+  pull-requests: write
+
+# 4. 并发控制
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: 代码质量检查
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    # Job 策略 - 使用矩阵清晰定义
+    strategy:
+      matrix:
+        check-type: [lint, security, coverage]
+        node-version: [16.x, 18.x]
+        include:
+          - check-type: lint
+            command: eslint
+          - check-type: security
+            command: audit
+          - check-type: coverage
+            command: test
+    
+    # 环境配置
+    environment: development
+    
+    # 环境变量（Job级别）
+    env:
+      CI: true
+      TEST_ENV: matrix-check
+    
+    # 条件执行 - 清晰的条件判断
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    
+    # 默认步骤
+    defaults:
+      run:
+        shell: bash
+    
+    # 超时设置
+    timeout-minutes: 30
+    
+    steps:
+    # 步骤1: 检出代码
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      env:  # 在 Step 级别设置环境变量
+          STEP_SPECIFIC_VAR: step-value
+          ANOTHER_VAR: another-value
+      with:
+        fetch-depth: 0
+        ref: ${{ github.ref }}
+    
+    # 步骤2: 设置 Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    # 步骤3: 依赖安装
+    - name: Install dependencies
+      run: |
+        echo "安装依赖包..."
+        npm ci
+        echo "当前检查类型: ${{ matrix.check-type }}"
+        echo "Node.js 版本: ${{ matrix.node-version }}"
+        echo "执行命令: ${{ matrix.command }}"
+    
+    # 步骤4: 代码检查矩阵
+    - name: Run ${{ matrix.check-type }}
+      run: |
+        case "${{ matrix.check-type }}" in
+          "lint")
+            echo "执行代码规范检查"
+            echo "ESLint 检查中..."
+            ;;
+          "security")
+            echo "执行安全漏洞扫描"
+            echo "npm audit 检查中..."
+            ;;
+          "coverage")
+            echo "执行代码覆盖率检查"
+            echo "运行测试并生成覆盖率报告..."
+            ;;
+        esac
+    
+    # 步骤5: 上传制品
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.check-type }}-results-${{ matrix.node-version }}
+        path: |
+          reports/
+          coverage/
+        retention-days: 7
+      if: always()
+    
+    # 步骤6: 缓存处理
+    - name: Cache node modules
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+  # Job 2: 构建和测试 - 使用矩阵跨平台测试
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    # 清晰的矩阵策略定义多平台
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18.x]
+    
+    needs: code-quality
+    
+    # 服务容器
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379/tcp
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+      
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432/tcp
+    
+    env:
+      REDIS_URL: redis://localhost:6379
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup environment
+      run: |
+        echo "设置构建环境..."
+        echo "运行在: ${{ matrix.os }}"
+        echo "工作目录: ${{ github.workspace }}"
+        echo "事件类型: ${{ github.event_name }}"
+        echo "提交信息: ${{ github.event.head_commit.message }}"
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    
+    - name: Build application
+      id: build
+      run: |
+        echo "开始构建应用程序..."
+        echo "操作系统: ${{ matrix.os }}"
+        echo "Node.js 版本: ${{ matrix.node-version }}"
+        echo "构建配置: ${{ vars.BUILD_CONFIG || 'default' }}"
+    
+    - name: Run tests
+      run: |
+        echo "执行测试套件..."
+        echo "连接到 Redis: ${{ env.REDIS_URL }}"
+        echo "连接到 PostgreSQL: ${{ env.DATABASE_URL }}"
+        echo "在 ${{ matrix.os }} 上运行测试"
+    
+    - name: Test results
+      if: always()
+      run: |
+        echo "测试执行完成"
+        echo "Job 状态: ${{ job.status }}"
+        echo "构建步骤状态: ${{ steps.build.outcome }}"
+        echo "操作系统: ${{ matrix.os }}"
+
+  # Job 3: 安全扫描
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Dependency scan
+      run: |
+        echo "执行依赖项安全扫描..."
+        echo "检查已知漏洞..."
+    
+    - name: Code vulnerability scan
+      run: |
+        echo "执行代码漏洞扫描..."
+        echo "SAST 分析中..."
+    
+    - name: Container scan
+      run: |
+        echo "执行容器镜像扫描..."
+        echo "Docker 安全扫描..."
+    
+    - name: Upload security report
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report
+        path: security-scans/
+        retention-days: 30
+
+  # Job 4: 部署到预发布环境
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-test, security-scan]
+    
+    # 清晰的环境条件判断
+    if: ${{ github.event.inputs.environment == 'staging' || github.event.inputs.environment != 'production' }}
+    
+    # 环境配置
+    environment: 
+      name: staging
+      url: https://staging.example.com
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+    
+    - name: Setup deployment
+      run: |
+        echo "准备部署到 staging 环境"
+        echo "部署标签: ${{ github.event.inputs.tags || 'latest' }}"
+        echo "调试模式: ${{ github.event.inputs.debug || false }}"
+        echo "触发方式: ${{ github.event_name }}"
+    
+    - name: Deploy application
+      run: |
+        echo "执行部署操作到 staging..."
+        echo "使用环境密钥"
+    
+    - name: Health check
+      run: |
+        echo "执行健康检查..."
+        echo "验证部署状态..."
+        echo "应用URL: ${{ environment.url }}"
+
+  # Job 5: 部署到生产环境（需要审批）
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    
+    # 清晰的生产环境条件
+    if: ${{ github.event.inputs.environment == 'production' || github.ref == 'refs/heads/main' }}
+    
+    # 生产环境配置（需要审批）
+    environment: 
+      name: production
+      url: https://production.example.com
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+    
+    - name: Setup production deployment
+      run: |
+        echo "准备部署到生产环境"
+        echo "这是一个受保护的环境，需要审批"
+        echo "部署标签: ${{ github.event.inputs.tags || 'latest' }}"
+        echo "分支: ${{ github.ref }}"
+    
+    - name: Deploy to production
+      run: |
+        echo "执行生产环境部署..."
+        echo "使用生产环境密钥"
+    
+    - name: Production health check
+      run: |
+        echo "执行生产环境健康检查..."
+        echo "验证生产部署状态..."
+        echo "生产环境URL: ${{ environment.url }}"
+
+  # Job 6: 通知和清理
+  notify-and-cleanup:
+    name: Notify and Cleanup
+    runs-on: ubuntu-latest
+    needs: 
+      - deploy-staging
+      - deploy-production
+    if: always()
+    
+    outputs:
+      workflow-status: ${{ steps.check-status.outputs.status }}
+      deployment-message: ${{ steps.check-status.outputs.message }}
+    
+    steps:
+    - name: Determine notification type
+      id: check-status
+      run: |
+        # 清晰的状态判断逻辑
+        if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=🎉 生产环境部署成功完成！" >> $GITHUB_OUTPUT
+        elif [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=🎉 预发布环境部署成功完成！" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "message=❌ 部署失败，请检查日志" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Send notification
+      run: |
+        echo "发送通知: ${{ steps.check-status.outputs.message }}"
+        echo "工作流状态: ${{ steps.check-status.outputs.status }}"
+        echo "工作流运行ID: ${{ github.run_id }}"
+        echo "工作流URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "预发布环境部署状态: ${{ needs.deploy-staging.result }}"
+        echo "生产环境部署状态: ${{ needs.deploy-production.result }}"
+        echo "代码质量检查状态: ${{ needs.code-quality.result }}"
+        echo "安全扫描状态: ${{ needs.security-scan.result }}"
+    
+    - name: Cleanup resources
+      if: always()
+      run: |
+        echo "清理临时资源..."
+        echo "删除临时文件..."
+        echo "释放构建缓存..."
+    
+    - name: Update PR status
+      if: ${{ github.event_name == 'pull_request' }}
+      run: |
+        echo "更新 Pull Request 状态..."
+        echo "添加构建结果评论..."
+        echo "PR 编号: ${{ github.event.pull_request.number }}"
+
+  # Job 7: 多环境测试示例
+  multi-environment-test:
+    name: Test on ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    # 清晰的多环境矩阵定义
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+        include:
+          - environment: development
+            api-url: https://dev-api.example.com
+          - environment: staging
+            api-url: https://staging-api.example.com
+          - environment: production
+            api-url: https://api.example.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Environment setup
+      run: |
+        echo "测试环境: ${{ matrix.environment }}"
+        echo "API 端点: ${{ matrix.api-url }}"
+        echo "执行环境特定测试..."
+    
+    - name: Run environment tests
+      run: |
+        echo "在 ${{ matrix.environment }} 环境运行测试"
+        echo "连接到: ${{ matrix.api-url }}"
+
+# 工作流输出
+outputs:
+  deployment-url:
+    description: "部署后的应用URL"
+    value: ${{ needs.deploy-production.outputs.deployment-url || needs.deploy-staging.outputs.deployment-url }}
+  build-status:
+    description: "构建状态"
+    value: ${{ needs.build-and-test.result }}
+  security-status:
+    description: "安全扫描状态"
+    value: ${{ needs.security-scan.result }}

@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package ci.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "xcoding/gen/go/ci/v1;civ1";
+
+// 构建状态
+enum BuildStatus {
+  BUILD_STATUS_UNSPECIFIED = 0;
+  BUILD_STATUS_PENDING = 1;   // 已创建，等待下发到队列
+  BUILD_STATUS_QUEUED = 2;    // 已进入队列
+  BUILD_STATUS_RUNNING = 3;   // 执行中
+  BUILD_STATUS_SUCCEEDED = 4; // 成功
+  BUILD_STATUS_FAILED = 5;    // 失败
+  BUILD_STATUS_CANCELLED = 6; // 已取消
+}
+
+// 步骤状态
+enum StepStatus {
+  STEP_STATUS_UNSPECIFIED = 0;
+  STEP_STATUS_PENDING = 1;
+  STEP_STATUS_RUNNING = 2;
+  STEP_STATUS_SUCCEEDED = 3;
+  STEP_STATUS_FAILED = 4;
+  STEP_STATUS_CANCELLED = 5;
+  STEP_STATUS_SKIPPED = 6;
+}
+
+// 构建（Build）实例
+message Build {
+  uint64 id = 1;                     // build_id（由服务生成）
+  uint64 pipeline_id = 2;            // 对应流水线
+  string name = 3;                   // 名称
+  BuildStatus status = 4;            // 状态
+  string triggered_by = 5;           // 触发者（用户名/系统）
+  string commit_sha = 6;             // 触发的提交（可选）
+  string branch = 7;                 // 触发的分支（可选）
+  string snapshot = 8;               // workflow YAML 快照
+  map<string, string> variables = 9; // 触发时携带的变量（可选）
+  google.protobuf.Timestamp created_at = 10;  // 创建时间
+  google.protobuf.Timestamp started_at = 11;  // 开始时间
+  google.protobuf.Timestamp finished_at = 12; // 结束时间
+}
+
+// 触发构建
+message StartPipelineBuildRequest {
+  uint64 pipeline_id = 1;            // 路径变量
+  string commit_sha = 2;             // 可选
+  string branch = 3;                 // 可选
+  string triggered_by = 4;           // 触发者（可选）
+  map<string, string> variables = 5; // 可选
+}
+message StartPipelineBuildResponse { Build build = 1; }
+
+// 获取构建
+message GetBuildRequest { uint64 build_id = 1; }
+message GetBuildResponse { Build build = 1; }
+
+// 列出构建
+message ListBuildsRequest {
+  uint64 pipeline_id = 1; // 路径变量
+  int32 page = 2;
+  int32 page_size = 3;
+}
+message ListBuildsResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Build data = 1;
+  Pagination pagination = 2;
+}
+
+// 取消构建
+message CancelBuildRequest { uint64 build_id = 1; }
+message CancelBuildResponse { bool success = 1; Build build = 2; }

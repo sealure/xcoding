@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-repository
+  labels:
+    app.kubernetes.io/name: xcoding
+    app.kubernetes.io/instance: xcoding
+    app.kubernetes.io/component: code-repository
+spec:
+  type: ClusterIP
+  ports:
+    - port: 10053
+      targetPort: 10053
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: xcoding
+    app.kubernetes.io/instance: xcoding
+    app.kubernetes.io/component: code-repository

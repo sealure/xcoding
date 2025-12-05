@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package ci.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "ci/v1/build.proto";
+
+option go_package = "xcoding/gen/go/ci/v1;civ1";
+
+service ExecutorService {
+  rpc GetBuild(GetExecutorBuildRequest) returns (GetExecutorBuildResponse) {
+    option (google.api.http) = { get: "/ci_service/api/v1/executor/builds/{build_id}" };
+  }
+  rpc ListBuilds(ListExecutorBuildsRequest) returns (ListExecutorBuildsResponse) {
+    option (google.api.http) = { get: "/ci_service/api/v1/executor/pipelines/{pipeline_id}/builds" };
+  }
+  rpc GetBuildLogs(GetBuildLogsRequest) returns (GetBuildLogsResponse) {
+    option (google.api.http) = { get: "/ci_service/api/v1/executor/builds/{build_id}/logs" };
+  }
+  rpc CancelBuild(CancelExecutorBuildRequest) returns (CancelExecutorBuildResponse) {
+    option (google.api.http) = { post: "/ci_service/api/v1/executor/builds/{build_id}/cancel" body: "*" };
+  }
+  rpc GetK8sStatus(GetK8sStatusRequest) returns (GetK8sStatusResponse) {
+    option (google.api.http) = { get: "/ci_service/api/v1/executor/builds/{build_id}/k8s_status" };
+  }
+}
+
+
+message GetExecutorBuildRequest { uint64 build_id = 1; }
+message GetExecutorBuildResponse { Build build = 1; }
+
+message ListExecutorBuildsRequest { uint64 pipeline_id = 1; int32 page = 2; int32 page_size = 3; }
+message ListExecutorBuildsResponse {
+  message Pagination { int32 page = 1; int32 page_size = 2; int32 total_items = 3; int32 total_pages = 4; }
+  repeated Build data = 1;
+  Pagination pagination = 2;
+}
+
+
+message GetBuildLogsRequest { uint64 build_id = 1; uint64 offset = 2; uint64 limit = 3; }
+message GetBuildLogsResponse { repeated string lines = 1; uint64 next_offset = 2; }
+message CancelExecutorBuildRequest { uint64 build_id = 1; }
+message CancelExecutorBuildResponse { bool success = 1; Build build = 2; }
+
+message GetK8sStatusRequest { uint64 build_id = 1; string job_name_prefix = 2; int32 page = 3; int32 page_size = 4; }
+message K8sPodStatus { string name = 1; string phase = 2; string node = 3; string reason = 4; }
+message K8sJobCondition { string type = 1; string status = 2; string reason = 3; string message = 4; }
+message K8sJobStatus { string job_name = 1; repeated K8sPodStatus pods = 2; int32 succeeded = 3; int32 failed = 4; repeated K8sJobCondition conditions = 5; }
+message GetK8sStatusResponse {
+  repeated K8sJobStatus jobs = 1;
+  message Pagination { int32 page = 1; int32 page_size = 2; int32 total_items = 3; int32 total_pages = 4; }
+  Pagination pagination = 2;
+}

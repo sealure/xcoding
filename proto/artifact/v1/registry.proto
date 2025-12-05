@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package artifact.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "xcoding/gen/go/artifact/v1;artifactv1";
+
+// Artifact 类型
+enum ArtifactType {
+  ARTIFACT_TYPE_UNSPECIFIED = 0;
+  ARTIFACT_TYPE_DOCKER = 1;
+  ARTIFACT_TYPE_GENERIC_FILE = 2;
+}
+
+// Artifact 来源
+enum ArtifactSource {
+  ARTIFACT_SOURCE_UNSPECIFIED = 0;
+  ARTIFACT_SOURCE_XCODING_REGISTRY = 1;
+  ARTIFACT_SOURCE_ALI_REGISTRY = 2;
+  ARTIFACT_SOURCE_SMB = 10;
+  ARTIFACT_SOURCE_FTP = 11;
+}
+
+// 注册表消息
+message Registry {
+  uint64 id = 1;
+  uint64 project_id = 2;
+  string name = 3;
+  string url = 4;
+  string description = 5;
+  bool is_public = 6;
+  string username = 7;  // 用于认证的用户名
+  string password = 8;  // 用于认证的密码
+  // 新增：注册表的制品类型与来源
+  ArtifactType artifact_type = 9;
+  ArtifactSource artifact_source = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// 创建注册表请求
+message CreateRegistryRequest {
+  string name = 1;
+  string url = 2;
+  string description = 3;
+  bool is_public = 4;
+  string username = 5;
+  string password = 6;
+  uint64 project_id = 7;
+  // 新增：制品类型与来源
+  ArtifactType artifact_type = 8;
+  ArtifactSource artifact_source = 9;
+}
+
+// 创建注册表响应
+message CreateRegistryResponse {
+  Registry registry = 1;
+}
+
+// 获取注册表请求
+message GetRegistryRequest {
+  uint64 id = 1;
+  uint64 project_id = 2; // 用于权限校验的项目ID（可选）
+}
+
+// 获取注册表响应
+message GetRegistryResponse {
+  Registry registry = 1;
+}
+
+// 更新注册表请求
+message UpdateRegistryRequest {
+  uint64 id = 1;
+  string name = 2;
+  string url = 3;
+  string description = 4;
+  bool is_public = 5;
+  string username = 6;
+  string password = 7;
+  uint64 project_id = 8; // 仅用于校验，一般不允许修改归属
+  // 新增：制品类型与来源
+  ArtifactType artifact_type = 9;
+  ArtifactSource artifact_source = 10;
+}
+
+// 更新注册表响应
+message UpdateRegistryResponse {
+  Registry registry = 1;
+}
+
+// 删除注册表请求
+message DeleteRegistryRequest {
+  uint64 id = 1;
+  uint64 project_id = 2; // 用于权限校验的项目ID（可选）
+}
+
+// 删除注册表响应
+message DeleteRegistryResponse {
+  bool success = 1;
+}
+
+// 列出注册表请求
+message ListRegistriesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  uint64 project_id = 3; // 过滤指定项目下的注册表
+}
+
+// 列出注册表响应
+message ListRegistriesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Registry data = 1;
+  Pagination pagination = 2;
+}

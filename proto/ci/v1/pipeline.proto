@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package ci.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "ci/v1/build.proto";
+import "ci/v1/schedule.proto";
+
+option go_package = "xcoding/gen/go/ci/v1;civ1";
+
+// PipelineService 模拟 GitHub Workflow：管理流水线定义与触发构建。
+// - 创建/更新/删除流水线（workflow）
+// - 触发构建（为 pipeline_id 生成 build_id，并由服务内部投递到 RabbitMQ）
+// - 查询构建与流水线
+service PipelineService {
+  // 创建流水线
+  rpc CreatePipeline(CreatePipelineRequest) returns (CreatePipelineResponse) {
+    option (google.api.http) = {
+      post: "/ci_service/api/v1/pipelines"
+      body: "*"
+    };
+  }
+
+  // 获取流水线详情
+  rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse) {
+    option (google.api.http) = {
+      get: "/ci_service/api/v1/pipelines/{pipeline_id}"
+    };
+  }
+
+  // 列出流水线
+  rpc ListPipelines(ListPipelinesRequest) returns (ListPipelinesResponse) {
+    option (google.api.http) = {
+      get: "/ci_service/api/v1/pipelines"
+    };
+  }
+
+  // 更新流水线
+  rpc UpdatePipeline(UpdatePipelineRequest) returns (UpdatePipelineResponse) {
+    option (google.api.http) = {
+      put: "/ci_service/api/v1/pipelines/{pipeline_id}"
+      body: "*"
+    };
+  }
+
+  // 删除流水线
+  rpc DeletePipeline(DeletePipelineRequest) returns (DeletePipelineResponse) {
+    option (google.api.http) = {
+      delete: "/ci_service/api/v1/pipelines/{pipeline_id}"
+    };
+  }
+
+  // ==== 流水线调度（Cron）管理 ====
+  // 创建调度：为流水线添加定时触发规则（如 cron: "0 2 1 * *"）
+  rpc CreateSchedule(CreatePipelineScheduleRequest) returns (CreatePipelineScheduleResponse) {
+    option (google.api.http) = {
+      post: "/ci_service/api/v1/pipelines/{pipeline_id}/schedules"
+      body: "*"
+    };
+  }
+
+  // 列出流水线的调度规则
+  rpc ListSchedules(ListPipelineSchedulesRequest) returns (ListPipelineSchedulesResponse) {
+    option (google.api.http) = {
+      get: "/ci_service/api/v1/pipelines/{pipeline_id}/schedules"
+    };
+  }
+
+  // 更新调度规则
+  rpc UpdateSchedule(UpdatePipelineScheduleRequest) returns (UpdatePipelineScheduleResponse) {
+    option (google.api.http) = {
+      put: "/ci_service/api/v1/pipelines/{pipeline_id}/schedules/{schedule_id}"
+      body: "*"
+    };
+  }
+
+  // 删除调度规则
+  rpc DeleteSchedule(DeletePipelineScheduleRequest) returns (DeletePipelineScheduleResponse) {
+    option (google.api.http) = {
+      delete: "/ci_service/api/v1/pipelines/{pipeline_id}/schedules/{schedule_id}"
+    };
+  }
+
+  // 触发构建：为指定的 pipeline 生成新的 build，并通过消息队列交由 pipeline_jobs 执行
+  rpc StartPipelineBuild(StartPipelineBuildRequest) returns (StartPipelineBuildResponse) {
+    option (google.api.http) = {
+      post: "/ci_service/api/v1/pipelines/{pipeline_id}/builds"
+      body: "*"
+    };
+  }
+}
+
+// ===== 实体与请求响应 =====
+
+// 流水线（Workflow）定义
+message Pipeline {
+  uint64 id = 1;
+  uint64 project_id = 2;          // 归属项目（可选）
+  string name = 3;                // 名称
+  string description = 4;         // 描述
+  string workflow_yaml = 5;       // 工作流 YAML 内容（模拟 GitHub Workflow）
+  bool is_active = 6;             // 是否启用
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+ 
+
+// 创建流水线
+message CreatePipelineRequest {
+  string name = 1;
+  string description = 2;
+  uint64 project_id = 3;
+  string workflow_yaml = 4;
+  bool is_active = 5;
+}
+message CreatePipelineResponse { Pipeline pipeline = 1; }
+
+// 获取流水线
+message GetPipelineRequest { uint64 pipeline_id = 1; }
+message GetPipelineResponse { Pipeline pipeline = 1; }
+
+// 列出流水线
+message ListPipelinesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  uint64 project_id = 3; // 过滤项目
+  string name = 4;       // 名称模糊查询（可选）
+}
+message ListPipelinesResponse {
+  message Pagination {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_items = 3;
+    int32 total_pages = 4;
+  }
+  repeated Pipeline data = 1;
+  Pagination pagination = 2;
+}
+
+// 更新流水线
+message UpdatePipelineRequest {
+  uint64 pipeline_id = 1;
+  string name = 2;
+  string description = 3;
+  uint64 project_id = 4;
+  string workflow_yaml = 5;
+  bool is_active = 6;
+}
+message UpdatePipelineResponse { Pipeline pipeline = 1; }
+
+// 删除流水线
+message DeletePipelineRequest { uint64 pipeline_id = 1; }
+message DeletePipelineResponse { bool success = 1; }

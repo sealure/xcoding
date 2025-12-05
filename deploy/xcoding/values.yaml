@@ -1,0 +1,153 @@
+frontend:
+  enabled: true
+  image:
+    repository: localhost:31500/frontend
+    tag: ennxtwmt
+    pullPolicy: IfNotPresent
+  service:
+    containerPort: 80
+    port: 80
+  replicaCount: 1
+  resources: {}
+apisix:
+  enabled: true
+  fullnameOverride: apisix
+  namespace: xcoding
+  etcd:
+    replicaCount: 3
+    enabled: true
+    fullnameOverride: etcd
+    prefix: /apisix
+    timeout: 30
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/etcd
+      tag: 3.6.4-debian-12-r4
+      pullPolicy: IfNotPresent
+  config:
+    config_provider: etcd
+  dashboard:
+    enabled: false
+  service:
+    type: NodePort
+    http:
+      enabled: true
+      servicePort: 80
+      containerPort: 9080
+      nodePort: 31080
+  admin:
+    enabled: true
+    servicePort: 9180
+    containerPort: 9180
+    allow:
+      ipList:
+      - 0.0.0.0/0
+    credentials:
+      admin: edd1c9f034335f136f87ad84b625c8f1
+      viewer: 4054f7cf07e344346cd3f287985e76a2
+  deployment:
+    mode: traditional
+    role: traditional
+    role_traditional:
+      config_provider: etcd
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+  status:
+    ip: 0.0.0.0
+    port: 7085
+  ingress-controller:
+    enabled: true
+    config:
+      apisix:
+        default_cluster_base_url: http://apisix-admin.xcoding.svc:9180/apisix/admin
+        admin_key: edd1c9f034335f136f87ad84b625c8f1
+      kubernetes:
+        ingressClass: apisix
+        defaultIngressClass: true
+        enable_status: true
+        app_namespaces:
+        - xcoding
+        ingress_support_chaos: true
+        ingress_status_address: http://apisix-gateway:80
+    gatewayProxy:
+      createDefault: true
+      provider:
+        type: ControlPlane
+        controlPlane:
+          endpoints: []
+          auth:
+            type: AdminKey
+            adminKey:
+              value: edd1c9f034335f136f87ad84b625c8f1
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: latest
+    pullPolicy: IfNotPresent
+  fullnameOverride: postgresql
+  global:
+    postgresql:
+      auth:
+        postgresPassword: postgres
+        database: xcoding_user
+        username: postgres
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+docker-registry:
+  enabled: true
+  fullnameOverride: docker-registry
+  service:
+    type: NodePort
+    nodePort: 31500
+  persistence:
+    enabled: true
+    size: 10Gi
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+  configData:
+    storage:
+      delete:
+        enabled: true
+rabbitmq:
+  enabled: true
+  fullnameOverride: rabbitmq
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/rabbitmq
+    tag: latest
+    pullPolicy: IfNotPresent
+  auth:
+    username: admin
+    password: admin123
+    erlangCookie: rabbitmqCookie
+  persistence:
+    enabled: true
+    size: 8Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    type: NodePort
+    port: 5672
+    managerPort: 15672
+    managerNodePort: 31572
+  queue: ci_builds
+  replicaCount: 1
+  memoryHighWatermark:
+    enabled: true
+    type: relative
+    value: 0.4

@@ -21,9 +21,10 @@ XCoding 是一款基于 Kubernetes 原生架构构建的企业级微服务研发
 2. 进入仓库根目录，按需修改 `deploy/xcoding/values.yaml` 中镜像仓库与端口等配置。
 
 ### 一键部署（推荐）
+- 2核2G的电脑，确保已配置好 `kubectl`、`helm`、`docker` 环境。
 - 使用 `deploy/deploy_all.py` 执行全量构建/推送/部署：
   - 运行：`python deploy/deploy_all.py`
-  - 可通过 `python deploy/deploy_all.py -h` 查看可用选项
+  - （可选）可通过 `python deploy/deploy_all.py -h` 查看可用选项
 
 ### 按微服务部署（可选）
 - 用户服务：`python deploy/python/user/deploy.py --tag <tag>`

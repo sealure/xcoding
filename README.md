@@ -1,13 +1,13 @@
 # XCoding 平台
 
-项目以 Buf/proto 定义接口、gRPC + gRPC-Gateway 暴露服务、APISIX 网关、通过 Helm 管理部署的 Kubernetes 微服务项目。包含用户、项目、代码仓库、制品库与 CI 执行器/流水线等核心微服务，以及前端管理界面。
+XCoding 是一款基于 Kubernetes 原生架构构建的企业级微服务研发平台。项目采用最新的技术栈组合，包括 gRPC/Buf 接口定义、APISIX 高性能网关以及 Helm 声明式部署管理。平台集成了用户权限管理、项目管理、代码仓库托管、制品管理以及 CI/CD 流水线等核心能力，旨在提供一套现代化、高性能且易于扩展的一站式研发效能解决方案。
 
 ## 基本特点
-- 统一协议：使用 `buf` 管理 `proto`，HTTP 由 `google.api.http` 注解自动映射到 gRPC，经 `grpc-gateway` 暴露。
-- 网关与认证：APISIX Ingress 统一入口；使用 `forward-auth` 将认证委托给 User 服务，回传 `X-User-*` 与 `X-Scopes` 头。
-- 微服务边界清晰：User（认证与令牌）、Project（成员与权限）、Code Repository（项目代码仓库）、Artifact（镜像/制品元数据）、CI（Pipeline 与 Executor）。
- - K8s 原生：各服务以 Deployment/Service 暴露；健康探针使用 gRPC/HTTP；CI 执行器通过 K8s Job 运行流水线 Job，并采集日志与状态。
- - Helm 管理：单 Chart 编排第三方依赖（APISIX/PostgreSQL/RabbitMQ/Registry）与各服务模板，支持一键安装/升级。
+- **标准化接口定义**：基于 Protocol Buffers (Buf) 进行统一的接口定义与管理。利用 gRPC-Gateway 自动生成符合 RESTful 规范的 HTTP 接口，兼顾内部服务间的高性能 gRPC 通信与外部调用的便捷性。
+- **统一网关与安全认证**：采用 APISIX 作为统一流量入口，集成 User 服务实现集中式认证与鉴权。所有请求在转发至后端微服务前均经过严格的安全验证，确保系统的安全性与访问控制的一致性。
+- **模块化微服务架构**：系统拆分为功能独立的微服务模块，包括用户管理 (User)、项目管理 (Project)、 CI核心引擎 (Pipeline & Executor)、代码仓库 (Code Repository)及制品库 (Artifact)， 各服务职责边界清晰，易于维护与扩展。
+- **云原生架构设计**：完全基于 Kubernetes 原生体系构建。各服务支持健康检查与水平自动伸缩；CI 流水线任务通过动态调度 K8s Job 执行，实现计算资源的按需分配与环境隔离。
+- **声明式部署管理**：采用 Helm Chart 统一编排所有微服务及其基础设施依赖（PostgreSQL, RabbitMQ, APISIX 等），支持声明式的版本管理与一键化部署升级，简化运维复杂度。
 
 ## 界面预览
 - 任务执行中：![任务执行中](docs/img/1任务执行中.png)

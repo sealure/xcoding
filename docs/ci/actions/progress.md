@@ -7,23 +7,23 @@
 - 目标：基于现有架构，为 `steps.uses` 引入最小可用的 Actions 机制，支持示例：
   ```yaml
   steps:
-    - name: hello action test
-      uses: actions/hello@v4
+    - name: github_action_demo
+      uses: RuningBird/actions-test@v21
       with:
-        env_name: hello
+        MESSAGE: hello
   ```
 - 范围：先落地 `uses` 的解析与脚本生成（内置 `actions/hello`），保留后续扩展到远端/容器型/复合 Action。
 
 ## 已支持
 - 支持 `steps.uses` 引用解析：`owner/name@version`、`owner/name/path@version`
 - 自动下载 Actions 包并解析 `action.yml` 元数据
-- 将 `with` 输入映射为 `INPUT_*` 环境变量并在脚本中可用
+- 将 `with` 输入映射为环境变量
 - 按 `runs.using` 生成脚本并注入 `BuildScript(job)` 执行
 - 已支持类型：`composite`（展开 `run` 子步骤）、`node`（镜像包含 Node 运行时）
 - 暂不支持：`docker`（以日志提示方式告知）
 - 详细实现与约束见 [executor_service/README.md：数据流与状态 → 脚本与 Actions](../executor_service/README.md#数据流与状态)
 
-## 现状概览（代码参照）
+## 现状概览
 - 解析器：支持 `steps.run`/`steps.uses`，尚无 `with` 字段。
   - `apps/ci/executor_service/internal/parser/workflow_parser.go:24-29`
 - 脚本生成：仅处理 `run` 步骤；`uses` 目前不产生脚本。
@@ -84,7 +84,7 @@
 
 ## 示例与约定
 - 工作流示例路径：`apps/frontend/public/workflows/example.yml`
-- `with` 转环境规则：`with.env_name: hello` → 导出 `INPUT_ENV_NAME=hello`，脚本中使用 `$INPUT_ENV_NAME`。
+- `with` 转环境规则：`with.MESSAGE: hello` → 导出 `MESSAGE=hello`，脚本中使用 `$MESSAGE`。
 - 错误策略：继续错误由 `XC_CONTINUE_ON_ERROR` 控制，沿用现有包装：`apps/ci/executor_service/internal/executor/step_runner.go:19-36`
 - 资源/超时/节点选择：保持现有注入约定（`XC_RESOURCE_*`、`XC_JOB_TIMEOUT_SECONDS`、`XC_NODE_SELECTOR_*`）。
 
@@ -98,20 +98,6 @@
   - 新增 `actions` 目录与内置 `hello` action
 
 ## 下一步计划
-- 实施解析器与脚本改动，落地 `actions/hello@v4`。
-- 写一个使用 `uses` 的工作流示例，验证日志输出与 Step 状态。
-- 增加最小单元测试（resolver/registry/BuildScript）。
+- 支持更多的actions运行，这个可以用户根据业务自己实现
+- 增加最小单元测试
 
-## 扩展路线（后续迭代）
-- 远端/复合/容器型 Actions：解析 `action.yml`，支持 `runs.using` 为 `composite/docker/node`。
-- 镜像型 Action：允许 `Action.Build` 返回镜像与命令覆盖，调整 `BuildJobSpec`。
-- 缓存与工件：为 Action 提供共享工作空间与缓存策略。
-- Secrets/权限：统一 `with` 敏感输入的处理与验证策略。
-
-## 校验与风险
-- 校验：
-  - E2E 通过现有 DAG/日志通道，断言 Step 状态与日志包含 `hello action test: hello`。
-  - 单测覆盖 `ParseUsesRef`、`BuildUsesScript` 与 `BuildScript` 分支。
-- 风险：
-  - `with` 注入需避免与 Job/Step env 冲突；采用 `INPUT_*` 前缀规避。
-  - 后续容器型 Action 需要仔细处理镜像安全与拉取策略。

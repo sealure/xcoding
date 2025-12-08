@@ -42,18 +42,18 @@
 提示：脚本会自动更新对应 Helm 模板中的镜像标签，并在命名空间不存在时创建 `xcoding` 命名空间；安装后可通过脚本提供的状态与日志命令查看部署情况。
 
 ## 文档索引
-- `docs/user/README.md`：用户服务概述与权限/令牌范围（`docs/user/permissions.md`）。
-- `docs/project/README.md`：项目服务概述与接口；权限模型参见 `docs/project/project-permissions.md`。
-- `docs/code_repository/feature/README.md`：代码仓库服务架构说明；权限见 `docs/code_repository/permissions.md`。
-- `docs/artifact/README.md`：制品服务概述；权限见 `docs/artifact/permissions.md`。
-- `docs/tests/README.MD`：单元/E2E 测试策略与运行指南。
-- `docs/ci/pipeline_service/README.md`：CI Pipeline 服务说明、数据流与架构图。
-- `docs/ci/executor_service/README.md`：CI 执行器服务说明、数据流与架构图。
-- `docs/ci/actions/progress.md`：CI `steps.uses` 的规划与当前进度。
+- [用户服务概述](docs/user/README.md)与[权限/令牌范围](docs/user/permissions.md)。
+- [项目服务概述与接口](docs/project/README.md)；权限模型参见 [docs/project/project-permissions.md](docs/project/project-permissions.md)。
+- [代码仓库服务架构说明](docs/code_repository/feature/README.md)；权限见 [docs/code_repository/permissions.md](docs/code_repository/permissions.md)。
+- [制品服务概述](docs/artifact/README.md)；权限见 [docs/artifact/permissions.md](docs/artifact/permissions.md)。
+- [单元/E2E 测试策略与运行指南](docs/tests/README.md)。
+- [CI Pipeline 服务说明、数据流与架构图](docs/ci/pipeline_service/README.md)。
+- [CI 执行器服务说明、数据流与架构图](docs/ci/executor_service/README.md)。
+- [CI 插件`steps.uses` 的规划与当前进度](docs/ci/actions/progress.md)。
 
 ## 代码生成
 - Buf 配置：`buf.yaml`，模块路径 `proto/`。
-- 生成命令示例：`buf generate`（需在本地配置 `buf.gen.yaml` 或使用项目已有的生成脚本）。
+- 生成命令示例：`buf generate`。
 
 ## 许可
 本项目源代码遵循BSD-3许可声明

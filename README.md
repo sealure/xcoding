@@ -8,7 +8,8 @@ XCoding 是一款基于 Kubernetes 原生架构构建的企业级微服务研发
 - **模块化微服务架构**：系统拆分为功能独立的微服务模块，包括用户管理 (User)、项目管理 (Project)、 CI核心引擎 (Pipeline & Executor)、代码仓库 (Code Repository)及制品库 (Artifact)， 各服务职责边界清晰，易于维护与扩展。
 - **云原生架构设计**：完全基于 Kubernetes 原生体系构建。各服务支持健康检查与水平自动伸缩；CI 流水线任务通过动态调度 K8s Job 执行，实现计算资源的按需分配与环境隔离。
 - **声明式部署管理**：采用 Helm Chart 统一编排所有微服务及其基础设施依赖（PostgreSQL, RabbitMQ, APISIX 等），支持声明式的版本管理与一键化部署升级，简化运维复杂度。
-
+- **兼容github的workflow**
+- **兼容github的插件执行**,一个demo插件https://github.com/sealure/actions-test
 ## 界面预览
 - 任务执行中：![任务执行中](docs/img/1任务执行中.png)
 - Job 运行结果查看：![Job 运行结果查看](docs/img/2Job运行结果查看.png)
